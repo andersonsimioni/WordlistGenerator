@@ -1,0 +1,2 @@
+# WordlistGenerator
+Smart words generator
