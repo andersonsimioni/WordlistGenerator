@@ -20,3 +20,12 @@ generation on future.</br>
 2 - Run command: Wordlistgenerator newSession --maxSequencialNormal 2 --minSize 1 --maxSize 12 --charColl abAB12@!</br>
 </br>
 You can run "Wordlistgenerator help" to for view all arguments options</br>
+
+
+# DONATIONS
+-> Bitcoin: bc1qm36lgs2ag7rayyfxycfcfy2m0k2hujwpt9sczg
+-> Eth: 0x3E9043b0CB8749e5747c6F22fA6Ac56AC3c3345d
+-> Doge: DNrXbBoNFfvDtMAqEL6jsmJJk2QM4py3JN
+-> XRP: r94MBfDUiS21aGRbJtdn3VHhD7rjt5PDzU
+-> BNB: 0x3E9043b0CB8749e5747c6F22fA6Ac56AC3c3345d
+-> USDT(ERC20): 0x3E9043b0CB8749e5747c6F22fA6Ac56AC3c3345d
