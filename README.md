@@ -8,7 +8,7 @@ This program can generate specific wordlists and have checkpoint restore system 
 generation on future.</br>
 </br>
 # BUILD TUTORIAL</br>
-1 - Install Visual Studio 2019 or most recent version</br>
+1 - Install Visual Studio Code or Visual Studio 2019 or most recent version</br>
 2 - Start Visual Studio</br>
 3 - Click on clone repository</br>
 4 - Click on github and login in your account</br>
