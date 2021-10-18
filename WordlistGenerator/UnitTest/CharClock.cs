@@ -21,8 +21,6 @@ namespace WordlistGenerator.UnitTest
                 Console.WriteLine($"Increment() EXECUTED!");
                 Console.WriteLine($"GetChar() = {clock.GetChar()}");
                 Console.WriteLine($"IsEnd() = {clock.IsEnd()}");
-                Console.WriteLine($"CheckTurn() = {clock.CheckTurn()}");
-                Console.WriteLine($"CheckTurnAndReset() = {clock.CheckTurnAndReset()}");
             }
         }
 

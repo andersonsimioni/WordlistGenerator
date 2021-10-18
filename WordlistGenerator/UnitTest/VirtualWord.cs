@@ -13,9 +13,13 @@ namespace WordlistGenerator.UnitTest
             var word = new WordlistGenerator.VirtualWord(new VirtualWordRulesConfig() { 
                 MinWordSize = 2,
                 MaxWordSize = 3,
-                CharCollection = new WordlistGenerator.CharCollection("OH HELL", new string[] { "a", "b" }),
+                CharCollection = new WordlistGenerator.CharCollection("OH HELL", "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890".ToCharArray().Select(c=>c.ToString()).ToArray()),
             });
 
+            //big jump test
+            //word.Next(int.MaxValue);
+
+            //normal sequence test
             while (true)
             {
                 var txt = word.ToString();

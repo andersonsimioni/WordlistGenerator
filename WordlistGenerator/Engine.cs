@@ -15,14 +15,12 @@ namespace WordlistGenerator
         private readonly VirtualWordRulesConfig RulesConfig;
 
         [JsonProperty("VirtualWord")]
-        private readonly VirtualWord VirtualWord;
-
-        private readonly List<WordRules.IRule> Rules;
+        private VirtualWord VirtualWord;
 
         private bool EndStatus;
         private bool RunStatus;
-        private Thread WordGeneratorProcess;
-        private readonly List<string> GeneratedWords;
+        private Thread ControllerThread;
+        private readonly List<EngineThread> Threads;
 
         /// <summary>
         /// Get last computed word
@@ -31,29 +29,6 @@ namespace WordlistGenerator
         public string GetLastWord() 
         {
             return this.VirtualWord.ToString();
-        }
-
-        /// <summary>
-        /// Check if all rules are respected
-        /// </summary>
-        /// <returns></returns>
-        private bool CheckRules() 
-        {
-            foreach (var rule in Rules)
-                if (rule.CheckRule(VirtualWord) == false)
-                    return false;
-
-            return true;
-        }
-
-        /// <summary>
-        /// Load all rules verification functions
-        /// </summary>
-        private void LoadAllRules() 
-        {
-            Rules.Add(new WordRules.WordSize(RulesConfig));
-            Rules.Add(new WordRules.EqualsChars(RulesConfig));
-            Rules.Add(new WordRules.SequencialRepetitionChars(RulesConfig));
         }
 
         public bool IsEnd() 
@@ -66,7 +41,7 @@ namespace WordlistGenerator
         /// </summary>
         public void ClearGeneratedWords() 
         {
-            this.GeneratedWords.Clear();
+            this.Threads.ForEach(t => t.ClearGeneratedWords());
         }
 
         /// <summary>
@@ -75,7 +50,7 @@ namespace WordlistGenerator
         /// <returns></returns>
         public int GetGeneratedWordsCount() 
         {
-            return this.GeneratedWords.Count();
+            return this.Threads.Sum(t => t.GetGeneratedWordsCount());
         }
 
         /// <summary>
@@ -84,7 +59,10 @@ namespace WordlistGenerator
         /// <returns></returns>
         public string[] GetGeneratedWords() 
         {
-            return this.GeneratedWords.ToArray();
+            var words = new List<string>();
+            this.Threads.ForEach(t => words.AddRange(t.GetGeneratedWords()));
+
+            return words.ToArray();
         }
 
         /// <summary>
@@ -93,32 +71,37 @@ namespace WordlistGenerator
         public void StartProcess()
         {
             this.RunStatus = true;
-            this.WordGeneratorProcess.IsBackground = true;
-            this.WordGeneratorProcess.Start();
+            this.ControllerThread.IsBackground = true;
+            this.ControllerThread.Start();
+
+            this.Threads.ForEach(t => t.StartProcess());
         }
 
         /// <summary>
-        /// End words computation thread
+        /// End controller and other threads
         /// </summary>
         public void EndProcess() 
         {
             this.EndStatus = true;
+            this.Threads.ForEach(t => t.EndProcess());
         }
 
         /// <summary>
-        /// Pause thread execution
+        /// Pause controller and other threads execution
         /// </summary>
         public void Pause() 
         {
             this.RunStatus = false;
+            this.Threads.ForEach(t => t.Pause());
         }
 
         /// <summary>
-        /// Resume thread execution
+        /// Resume controller and other threads execution
         /// </summary>
         public void Resume() 
         {
             this.RunStatus = true;
+            this.Threads.ForEach(t => t.Resume());
         }
 
         /// <summary>
@@ -126,7 +109,10 @@ namespace WordlistGenerator
         /// </summary>
         private void SaveWords() 
         {
-            File.AppendAllLines(RulesConfig.WordlistPath, GeneratedWords);    
+            var words = new List<string>();
+            this.Threads.ForEach(t => words.AddRange(t.GetGeneratedWords()));
+
+            File.AppendAllLines(RulesConfig.WordlistPath, words);    
         }
 
         /// <summary>
@@ -135,52 +121,54 @@ namespace WordlistGenerator
         /// </summary>
         private void SaveCheckpoint() 
         {
+            Pause();
+
+            this.VirtualWord = Threads.First().GetVirtualWord();
+
             var checkpoint = new Checkpoint(this, VirtualWordRulesConfig.CheckpointPath);
             checkpoint.CreatePoint();
 
             SaveWords();
             ClearGeneratedWords();
+
+            Resume();
         }
 
         /// <summary>
         /// Set function for computation words thread
         /// </summary>
-        private void CreateThreadProcess() 
+        private void CreateControllerThread() 
         {
-            this.WordGeneratorProcess = new Thread(() => 
+            this.ControllerThread = new Thread(() => 
             {
                 while (this.EndStatus == false)
                 {
-                    if (this.RunStatus == false)
-                        Thread.Sleep(1000);
-                    else 
-                    {
-                        if (CheckRules())
-                            GeneratedWords.Add(VirtualWord.ToString());
+                    Thread.Sleep(1000);
 
-                        if (GeneratedWords.Count >= RulesConfig.CheckpointWordsCount)
+                    if(RunStatus)
+                        if (GetGeneratedWordsCount() >= RulesConfig.CheckpointWordsCount)
                             SaveCheckpoint();
-
-                        if (VirtualWord.CanNext())
-                            VirtualWord.Next();
-                        else
-                            EndProcess();
-                    }
                 }
 
                 SaveCheckpoint();
             });
         }
 
+        public void CreateThreads() 
+        {
+            var len = RulesConfig.ThreadsNumber;
+            for (int i = 0; i < len; i++)
+                this.Threads.Add(new EngineThread(i, len, RulesConfig, VirtualWord));
+        }
+
         public Engine(VirtualWordRulesConfig rulesConfig) 
         {
             this.RulesConfig = rulesConfig;
             this.VirtualWord = new VirtualWord(rulesConfig);
-            this.GeneratedWords = new List<string>();
-            this.Rules = new List<WordRules.IRule>();
-            LoadAllRules();
+            this.Threads = new List<EngineThread>();
 
-            CreateThreadProcess();
+            CreateControllerThread();
+            CreateThreads();
         }
 
         [JsonConstructor]
@@ -188,11 +176,10 @@ namespace WordlistGenerator
         {
             this.RulesConfig = RulesConfig;
             this.VirtualWord = VirtualWord;
-            this.GeneratedWords = new List<string>();
-            this.Rules = new List<WordRules.IRule>();
-            LoadAllRules();
+            this.Threads = new List<EngineThread>();
 
-            CreateThreadProcess();
+            CreateControllerThread();
+            CreateThreads();
         }
     }
 }

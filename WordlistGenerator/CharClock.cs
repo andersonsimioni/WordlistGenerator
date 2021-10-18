@@ -30,6 +30,26 @@ namespace WordlistGenerator
         [JsonProperty("CharCollection")]
         private readonly CharCollection CharCollection;
 
+        public override string ToString()
+        {
+            return GetChar();
+        }
+
+        public void SetCurrentIndex(ulong newIndex) 
+        {
+            this.CurrentIndex = newIndex;
+        }
+
+        public CharCollection GetCharCollection() 
+        {
+            return this.CharCollection;
+        }
+
+        public ulong GetCurrentIndex() 
+        {
+            return this.CurrentIndex;
+        }
+
         public CharTypes GetCharType() 
         {
             if (IsNormalLower())
@@ -74,25 +94,6 @@ namespace WordlistGenerator
             return this.CharCollection.GetChar(CurrentIndex);
         }
         
-        public bool CheckTurn() 
-        {
-            return this.CharCollection.CheckTurn(CurrentIndex);
-        }
-
-        /// <summary>
-        /// Check if CurrentIndex turned all char collection,
-        /// and if true reset CurrentIndex to zero again
-        /// </summary>
-        /// <returns></returns>
-        public bool CheckTurnAndReset() 
-        {
-            var turn = CheckTurn();
-            if (turn)
-                CurrentIndex = 0;
-
-            return turn;
-        }
-
         public bool IsEnd() 
         {
             return this.CharCollection.IsEnd(CurrentIndex);

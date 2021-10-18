@@ -12,6 +12,7 @@ namespace WordlistGenerator.TerminalCommands
         public string GetHelp()
         {
             return $"Create new wordlist generator session" +
+                   $"\n--threads: threas number count, default is 1" +
                    $"\n--cpWordCount: Checkpoint words count" +
                    $"\n--wdPath: Wordlist save path" +
                    $"\n--minsize: minimum size of word" +
@@ -42,6 +43,9 @@ namespace WordlistGenerator.TerminalCommands
         {
             var list = args.Select(c=>c.ToUpper()).ToList();
             var rules = new VirtualWordRulesConfig();
+
+            var threadsIndex = list.IndexOf("--threads".ToUpper()) + 1;
+            rules.ThreadsNumber = threadsIndex == 0 ? 1 : int.Parse(args[threadsIndex]);
 
             var checkpointWordsCountIndex = list.IndexOf("--cpWordCount".ToUpper()) + 1;
             var checkpointPathIndex = list.IndexOf("--cpPath".ToUpper()) + 1;

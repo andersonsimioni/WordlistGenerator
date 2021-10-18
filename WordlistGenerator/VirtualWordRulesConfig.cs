@@ -8,6 +8,8 @@ namespace WordlistGenerator
 {
     public class VirtualWordRulesConfig
     {
+        public int ThreadsNumber { get; set; }
+
         public static readonly string CheckpointPath = "Checkpoint";
         public string WordlistPath { get; set; }
         public int CheckpointWordsCount { get; set; }

@@ -50,37 +50,16 @@ namespace WordlistGenerator
         {
             if (RulesConfig.MaxWordSize == 0)
                 return true;
+            if (WordChars.Count() >= RulesConfig.MaxWordSize)
+                return false;
 
             var anyNotEnd = WordChars.Any(wd => wd.IsEnd() == false);
             var allEnd = !anyNotEnd;
 
-            if (allEnd && WordChars.Count() == RulesConfig.MaxWordSize)
+            if (allEnd && WordChars.Count() >= RulesConfig.MaxWordSize)
                 return false;
 
             return true;
-        }
-
-        /// <summary>
-        /// Compute next word combination
-        /// </summary>
-        public void Next() 
-        {
-            var anyNotEnd = WordChars.Any(wd => wd.IsEnd() == false);
-            var allEnd = !anyNotEnd;
-
-            if (allEnd) 
-            {
-                WordChars.Add(new CharClock(RulesConfig.CharCollection));
-            }
-            else 
-            {
-                for (int i = 0; i < WordChars.Count(); i++)
-                {
-                    WordChars[i].Increment();
-                    if (WordChars[i].CheckTurnAndReset() == false)
-                        break;
-                }
-            }
         }
 
         /// <summary>
@@ -88,13 +67,28 @@ namespace WordlistGenerator
         /// it use auto CheckNext();
         /// </summary>
         /// <param name="rounds"></param>
-        public void Next(int rounds) 
+        public void Next(ulong rounds = 1) 
         {
-            while(CanNext() && rounds > 0) 
+            WordChars[0].Increment(rounds);
+
+            var len = (float)RulesConfig.CharCollection.Length();
+
+            for (int i = 0; i < WordChars.Count; i++)
             {
-                Next();
-                rounds--;
-            }   
+                var index = (float)WordChars[i].GetCurrentIndex();
+                if (index < len)
+                    break;
+
+                var rest = index % len;
+                var division = (int)(index / len);
+
+                WordChars[i].SetCurrentIndex((ulong)rest);
+
+                if (i == WordChars.Count - 1)
+                    WordChars.Add(new CharClock(RulesConfig.CharCollection));
+                else
+                    WordChars[i+1].Increment((ulong)division);
+            }
         }
 
         public List<CharClock> GetWordChars() 
